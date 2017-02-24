@@ -15,9 +15,6 @@ class LogisticRegression:
         self.eta = eta
         self.lambda_parameter = lambda_parameter
         self.theta = None
-        self.deltas = None
-        self.probs = None
-        self.grad = None
     
     def softmax(self,mat,k):
         exps = np.exp(mat)
@@ -41,11 +38,7 @@ class LogisticRegression:
             probs = self.softmax(h,k)
             deltas = probs - np.array(pd.get_dummies(C))
             grad = np.dot(X.T, deltas)/len(X) + (self.lambda_parameter/m)*theta
-            if i == 0:
-                self.deltas = deltas
-                self.grad = grad
             theta = theta - self.eta*grad
-        self.probs = probs
         self.theta = theta
         
         return self
