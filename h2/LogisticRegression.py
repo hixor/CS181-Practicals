@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as c
 from scipy.misc import logsumexp
 import pandas as pd
+from sklearn import preprocessing
 
 # Please implement the fit and predict methods of this class. You can add additional private methods
 # by beginning them with two underscores. It may look like the __dummyPrivateMethod below.
@@ -10,51 +11,49 @@ import pandas as pd
 # the given function headers (they must take and return the same arguments), and as long as you
 # don't change anything in the .visualize() method. 
 class LogisticRegression:
-    def __init__(self, eta, lambda_parameter):
+    def __init__(self, eta, lambda_parameter=0):
         self.eta = eta
         self.lambda_parameter = lambda_parameter
-    
-    def oneHot(self, y, k=3):
-        base = np.array([np.ones(len(y)),]*k).transpose()
-        scale = np.array(range(1,k+1))
-        comp = base*scale
-        y_comp = np.array([np.array(y).transpose(),]*k).transpose()
-        self.y_mat = 1*np.equal(y_comp,comp)
-        return self.y_mat
+        self.theta = None
+        self.deltas = None
+        self.probs = None
+        self.grad = None
     
     def softmax(self,mat,k):
         exps = np.exp(mat)
         denom = np.array([np.sum(exps,1), ]*k).transpose()
         return exps/denom
 
+
     def fit(self, X, C):
-        self.X = pd.DataFrame(X)
-        self.C = pd.DataFrame(C)
-        self.y = self.oneHot(self.C,3)
+        X = np.column_stack((np.ones(len(X)), X))
+        X = preprocessing.scale(X)
         
-        n = self.X.shape[0]
-        m = self.X.shape[1]
+        n = X.shape[0]
+        m = X.shape[1]
         k = 3
-        num_iters = 100
+        num_iters = 1000
         theta = np.zeros((m,k))
-        mat = np.dot(X,theta)
+
         
         for i in range(num_iters):
             h = np.dot(X,theta) 
-            probs = softmax(h,k)
-            grad = (float(1)/m)*np.dot(X.transpose(),y_mat - probs)/len(X) + (self.lambda_parameter/m)*theta
+            probs = self.softmax(h,k)
+            deltas = probs - np.array(pd.get_dummies(C))
+            grad = np.dot(X.T, deltas)/len(X) + (self.lambda_parameter/m)*theta
+            if i == 0:
+                self.deltas = deltas
+                self.grad = grad
             theta = theta - self.eta*grad
+        self.probs = probs
+        self.theta = theta
         
-        return theta
+        return self
 
-    # TODO: Implement this method!
     def predict(self, X_to_predict):
-        # The code in this method should be removed and replaced! We included it just so that the distribution code
-        # is runnable and produces a (currently meaningless) visualization.
-        
-        h_pred = np.dot(X_to_predict,theta)
-        pred_probs = softmax(h_pred,k)
-        
+        X_to_predict = np.column_stack((np.ones(len(X_to_predict)), X_to_predict))
+        h_pred = np.dot(X_to_predict, self.theta)
+        pred_probs = self.softmax(h_pred,3)
         return np.argmax(pred_probs,axis=1)
 
     def visualize(self, output_file, width=2, show_charts=False):
