@@ -12,6 +12,12 @@ import pandas as pd
 class GaussianGenerativeModel:
     def __init__(self, isSharedCovariance=False):
         self.isSharedCovariance = isSharedCovariance
+        self.sigma1 = None
+        self.sigma2 = None
+        self.sigma3 = None
+        self.mu1 = None
+        self.mu2 = None
+        self.mu3 = None
 
     
     def __fruit_data(self):
@@ -20,15 +26,15 @@ class GaussianGenerativeModel:
         self.y = self.fruit["fruit"]
 
     
-     def fit(self, X, Y):
-        self.X = pd.DataFrame(X)
-        self.Y = pd.DataFrame(Y)
-        c1 = self.X[self.y==1]
-        c2 = self.X[self.y==2]
-        c3 = self.X[self.y==3]
-        self.mu1 = np.mean(c1)
-        self.mu2 = np.mean(c2)
-        self.mu3 = np.mean(c3)
+    def fit(self, X, Y):
+        self.X = X
+        self.Y = Y
+        c1 = X[Y==0]
+        c2 = X[Y==1]
+        c3 = X[Y==2]
+        self.mu1 = np.mean(c1,axis=0)
+        self.mu2 = np.mean(c2,axis=0)
+        self.mu3 = np.mean(c3,axis=0)
         if self.isSharedCovariance:
             self.sigma1 = np.cov(X.transpose())
             self.sigma2 = np.cov(X.transpose())
@@ -37,11 +43,10 @@ class GaussianGenerativeModel:
             self.sigma1 = np.cov(c1.transpose())
             self.sigma2 = np.cov(c2.transpose())
             self.sigma3 = np.cov(c3.transpose())
-        return (self.sigma, self.mu1, self.mu2, self.mu3)
-
- 
-
-        def predict(self, X_to_predict):
+        return self
+    
+    
+    def predict(self, X_to_predict):
 
         p1 =[]; p2=[]; p3=[]
         pred_x = pd.DataFrame(X_to_predict)
@@ -51,11 +56,12 @@ class GaussianGenerativeModel:
             p3.append(multivariate_normal.pdf(x[1], mean=self.mu3, cov=self.sigma3))
         preds = pd.DataFrame({"Class 1":p1, "Class 2": p2, "Class 3": p3})
                
-        return np.argmax(np.array(preds),axis=1)    
-
+        return np.argmax(np.array(preds),axis=1) 
+    
+    
 
     # Do not modify this method!
-    def visualize(self, output_file, width=3, show_charts=False):
+    def visualize(self, output_file, width=3, show_charts=True):
         X = self.X
 
         # Create a grid of points
