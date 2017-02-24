@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as c
 from scipy.misc import logsumexp
+import pandas as pd
 
 # Please implement the fit and predict methods of this class. You can add additional private methods
 # by beginning them with two underscores. It may look like the __dummyPrivateMethod below.
@@ -13,29 +14,48 @@ class LogisticRegression:
         self.eta = eta
         self.lambda_parameter = lambda_parameter
     
-    # Just to show how to make 'private' methods
-    def __dummyPrivateMethod(self, input):
-        return None
+    def oneHot(self, y, k=3):
+        base = np.array([np.ones(len(y)),]*k).transpose()
+        scale = np.array(range(1,k+1))
+        comp = base*scale
+        y_comp = np.array([np.array(y).transpose(),]*k).transpose()
+        self.y_mat = 1*np.equal(y_comp,comp)
+        return self.y_mat
+    
+    def softmax(self,mat,k):
+        exps = np.exp(mat)
+        denom = np.array([np.sum(exps,1), ]*k).transpose()
+        return exps/denom
 
-    # TODO: Implement this method!
     def fit(self, X, C):
-        self.X = X
-        self.C = C
-        return
+        self.X = pd.DataFrame(X)
+        self.C = pd.DataFrame(C)
+        self.y = self.oneHot(self.C,3)
+        
+        n = self.X.shape[0]
+        m = self.X.shape[1]
+        k = 3
+        num_iters = 100
+        theta = np.zeros((m,k))
+        mat = np.dot(X,theta)
+        
+        for i in range(num_iters):
+            h = np.dot(X,theta) 
+            probs = softmax(h,k)
+            grad = (float(1)/m)*np.dot(X.transpose(),y_mat - probs)/len(X) + (self.lambda_parameter/m)*theta
+            theta = theta - self.eta*grad
+        
+        return theta
 
     # TODO: Implement this method!
     def predict(self, X_to_predict):
         # The code in this method should be removed and replaced! We included it just so that the distribution code
         # is runnable and produces a (currently meaningless) visualization.
-        Y = []
-        for x in X_to_predict:
-            val = 0
-            if x[1] > 4:
-                val += 1
-            if x[1] > 6:
-                val += 1
-            Y.append(val)
-        return np.array(Y)
+        
+        h_pred = np.dot(X_to_predict,theta)
+        pred_probs = softmax(h_pred,k)
+        
+        return np.argmax(pred_probs,axis=1)
 
     def visualize(self, output_file, width=2, show_charts=False):
         X = self.X

@@ -11,8 +11,8 @@ from GaussianGenerativeModel import GaussianGenerativeModel
 # adjust these as you try to find the best fit for each classifier.
 
 # Logistic Regression parameters
-eta = .1
-lambda_parameter = .1
+eta = .01
+lambda_parameter = 10
 
 
 # Do not change anything below this line!!

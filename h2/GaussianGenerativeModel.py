@@ -2,6 +2,7 @@ from scipy.stats import multivariate_normal
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as c
+import pandas as pd
 
 # Please implement the fit and predict methods of this class. You can add additional private methods
 # by beginning them with two underscores. It may look like the __dummyPrivateMethod below.
@@ -12,29 +13,46 @@ class GaussianGenerativeModel:
     def __init__(self, isSharedCovariance=False):
         self.isSharedCovariance = isSharedCovariance
 
-    # Just to show how to make 'private' methods
-    def __dummyPrivateMethod(self, input):
-        return None
+    
+    def __fruit_data(self):
+        self.fruit = pd.read_csv("fruit.csv")
+        self.X = self.fruit[["width","height"]]
+        self.y = self.fruit["fruit"]
 
-    # TODO: Implement this method!
-    def fit(self, X, Y):
-        self.X = X
-        self.Y = Y
-        return
+    
+     def fit(self, X, Y):
+        self.X = pd.DataFrame(X)
+        self.Y = pd.DataFrame(Y)
+        c1 = self.X[self.y==1]
+        c2 = self.X[self.y==2]
+        c3 = self.X[self.y==3]
+        self.mu1 = np.mean(c1)
+        self.mu2 = np.mean(c2)
+        self.mu3 = np.mean(c3)
+        if self.isSharedCovariance:
+            self.sigma1 = np.cov(X.transpose())
+            self.sigma2 = np.cov(X.transpose())
+            self.sigma3 = np.cov(X.transpose())
+        else:
+            self.sigma1 = np.cov(c1.transpose())
+            self.sigma2 = np.cov(c2.transpose())
+            self.sigma3 = np.cov(c3.transpose())
+        return (self.sigma, self.mu1, self.mu2, self.mu3)
 
-    # TODO: Implement this method!
-    def predict(self, X_to_predict):
-        # The code in this method should be removed and replaced! We included it just so that the distribution code
-        # is runnable and produces a (currently meaningless) visualization.
-        Y = []
-        for x in X_to_predict:
-            val = 0
-            if x[1] > 4:
-                val += 1
-            if x[1] > 6:
-                val += 1
-            Y.append(val)
-        return np.array(Y)
+ 
+
+        def predict(self, X_to_predict):
+
+        p1 =[]; p2=[]; p3=[]
+        pred_x = pd.DataFrame(X_to_predict)
+        for x in pred_x.iterrows():
+            p1.append(multivariate_normal.pdf(x[1], mean=self.mu1, cov=self.sigma1))
+            p2.append(multivariate_normal.pdf(x[1], mean=self.mu2, cov=self.sigma2))
+            p3.append(multivariate_normal.pdf(x[1], mean=self.mu3, cov=self.sigma3))
+        preds = pd.DataFrame({"Class 1":p1, "Class 2": p2, "Class 3": p3})
+               
+        return np.argmax(np.array(preds),axis=1)    
+
 
     # Do not modify this method!
     def visualize(self, output_file, width=3, show_charts=False):
