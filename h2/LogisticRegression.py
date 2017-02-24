@@ -24,7 +24,8 @@ class LogisticRegression:
 
     def fit(self, X, C):
         X = np.column_stack((np.ones(len(X)), X))
-        X = preprocessing.scale(X)
+        self.X = preprocessing.scale(X)
+        self.C = C
         
         n = X.shape[0]
         m = X.shape[1]
@@ -49,7 +50,7 @@ class LogisticRegression:
         pred_probs = self.softmax(h_pred,3)
         return np.argmax(pred_probs,axis=1)
 
-    def visualize(self, output_file, width=2, show_charts=False):
+    def visualize(self, output_file, width=2, show_charts=True):
         X = self.X
 
         # Create a grid of points

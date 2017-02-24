@@ -48,12 +48,9 @@ class GaussianGenerativeModel:
     
     def predict(self, X_to_predict):
 
-        p1 =[]; p2=[]; p3=[]
-        pred_x = pd.DataFrame(X_to_predict)
-        for x in pred_x.iterrows():
-            p1.append(multivariate_normal.pdf(x[1], mean=self.mu1, cov=self.sigma1))
-            p2.append(multivariate_normal.pdf(x[1], mean=self.mu2, cov=self.sigma2))
-            p3.append(multivariate_normal.pdf(x[1], mean=self.mu3, cov=self.sigma3))
+        p1 = multivariate_normal.pdf(X_to_predict, mean=self.mu1, cov=self.sigma1)
+        p2 = multivariate_normal.pdf(X_to_predict, mean=self.mu2, cov=self.sigma2)
+        p3 = multivariate_normal.pdf(X_to_predict, mean=self.mu3, cov=self.sigma3)
         preds = pd.DataFrame({"Class 1":p1, "Class 2": p2, "Class 3": p3})
                
         return np.argmax(np.array(preds),axis=1) 
